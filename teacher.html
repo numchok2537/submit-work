@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>ตรวจงานนักเรียน — อาจารย์นำโชค</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="toolbar">
+    <h1>ตรวจงานนักเรียน</h1>
+    <a href="index.html" class="nav-link">&larr; หน้านักเรียน</a>
+  </header>
+
+  <main class="wide">
+    <div id="gate" class="passcode-gate">
+      <div class="card">
+        <h2>เข้าสู่ระบบอาจารย์</h2>
+        <div class="field">
+          <label for="f-passcode">รหัสผ่าน</label>
+          <input type="text" id="f-passcode" placeholder="รหัสผ่าน" />
+        </div>
+        <button id="btn-login" class="btn">เข้าสู่ระบบ</button>
+        <div id="login-status" class="status-msg"></div>
+      </div>
+    </div>
+
+    <div id="dashboard" hidden>
+      <div class="card">
+        <h2>รายการไฟล์ที่ส่ง</h2>
+        <div class="filters">
+          <select id="filter-class">
+            <option value="">-- ทุกห้องเรียน --</option>
+          </select>
+          <select id="filter-subject">
+            <option value="">-- ทุกวิชา --</option>
+          </select>
+          <button id="btn-refresh" class="btn small secondary">รีเฟรช</button>
+        </div>
+        <div id="list-placeholder" class="placeholder">กำลังโหลด...</div>
+        <table class="submissions" id="list-table" hidden>
+          <thead>
+            <tr>
+              <th>วันที่ส่ง</th>
+              <th>ชื่อนักเรียน</th>
+              <th>ห้อง</th>
+              <th>วิชา</th>
+              <th>ชื่องาน</th>
+              <th>ไฟล์</th>
+              <th>คะแนน</th>
+              <th>คอมเมนต์</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="list-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/teacher.js"></script>
+</body>
+</html>

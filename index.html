@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ส่งไฟล์งาน อาจารย์นำโชค — แผนกวิชาช่างเทคนิคคอมพิวเตอร์</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="toolbar">
+    <h1>ส่งไฟล์งาน</h1>
+    <a href="teacher.html" class="nav-link">หน้าอาจารย์ &rarr;</a>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div class="hero-icon">📤</div>
+      <div>
+        <div class="hero-title">เว็บส่งไฟล์งาน</div>
+        <div class="hero-subtitle">อาจารย์นำโชค พูลเขตนคร — แผนกวิชาช่างเทคนิคคอมพิวเตอร์ วิทยาลัยเทคนิคนครสวรรค์</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>ข้อมูลผู้ส่ง</h2>
+      <div class="field">
+        <label for="f-name">ชื่อ-สกุล</label>
+        <input type="text" id="f-name" placeholder="เช่น นายสมชาย ใจดี" />
+      </div>
+      <div class="field">
+        <label for="f-class">ห้องเรียน</label>
+        <select id="f-class">
+          <option value="">-- เลือกห้องเรียน --</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-class-other">ถ้าห้องเรียนไม่อยู่ในลิสต์ พิมพ์เองตรงนี้</label>
+        <input type="text" id="f-class-other" placeholder="(เว้นว่างถ้าเลือกจากลิสต์ด้านบนแล้ว)" />
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>ส่งไฟล์งาน</h2>
+      <div class="field">
+        <label for="f-subject">วิชา</label>
+        <select id="f-subject">
+          <option value="">-- เลือกวิชา --</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-title">ชื่องาน/หัวข้อที่ส่ง</label>
+        <input type="text" id="f-title" placeholder="เช่น ใบงานสัปดาห์ที่ 3, โปรเจกต์จบเทอม" />
+      </div>
+      <div class="field">
+        <label for="f-file">เลือกไฟล์ (ขนาดไม่เกิน <span id="max-size-label"></span> MB)</label>
+        <input type="file" id="f-file" />
+      </div>
+      <button id="btn-submit" class="btn">ส่งไฟล์งาน</button>
+      <div id="submit-status" class="status-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>ประวัติการส่งงานของฉัน</h2>
+      <div id="history-placeholder" class="placeholder">กรอกชื่อ-สกุลด้านบนเพื่อดูประวัติการส่งงาน</div>
+      <table class="submissions" id="history-table" hidden>
+        <thead>
+          <tr>
+            <th>วันที่ส่ง</th>
+            <th>วิชา</th>
+            <th>ห้อง</th>
+            <th>ชื่องาน</th>
+            <th>ไฟล์</th>
+            <th>คะแนน</th>
+            <th>คอมเมนต์</th>
+          </tr>
+        </thead>
+        <tbody id="history-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
