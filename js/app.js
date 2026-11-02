@@ -5,6 +5,8 @@
   var subjectSelect = document.getElementById("f-subject");
   var titleInput = document.getElementById("f-title");
   var fileInput = document.getElementById("f-file");
+  var folderInput = document.getElementById("f-folder");
+  var filePreview = document.getElementById("file-preview");
   var submitBtn = document.getElementById("btn-submit");
   var statusEl = document.getElementById("submit-status");
   var maxSizeLabel = document.getElementById("max-size-label");
@@ -89,6 +91,46 @@
     statusEl.className = "status-msg" + (kind ? " " + kind : "");
   }
 
+  var selectedFiles = [];
+
+  function fmtBytes(n) {
+    if (n < 1024 * 1024) return (n / 1024).toFixed(0) + " KB";
+    return (n / (1024 * 1024)).toFixed(1) + " MB";
+  }
+
+  function updatePreview() {
+    if (!selectedFiles.length) {
+      filePreview.textContent = "";
+      filePreview.className = "status-msg";
+      return;
+    }
+    var totalSize = selectedFiles.reduce(function (sum, f) {
+      return sum + f.size;
+    }, 0);
+    filePreview.textContent = "เลือกแล้ว " + selectedFiles.length + " ไฟล์ (รวม " + fmtBytes(totalSize) + ")";
+    filePreview.className = "status-msg" + (totalSize > CONFIG.MAX_FILE_MB * 1024 * 1024 ? " error" : "");
+  }
+
+  fileInput.addEventListener("change", function () {
+    if (fileInput.files.length) {
+      folderInput.value = "";
+      selectedFiles = Array.prototype.slice.call(fileInput.files);
+      updatePreview();
+    }
+  });
+
+  folderInput.addEventListener("change", function () {
+    if (folderInput.files.length) {
+      fileInput.value = "";
+      selectedFiles = Array.prototype.slice.call(folderInput.files);
+      updatePreview();
+    }
+  });
+
+  function relativePathOf(file) {
+    return file.webkitRelativePath || file.name;
+  }
+
   function fileToBase64(file) {
     return new Promise(function (resolve, reject) {
       var reader = new FileReader();
@@ -117,15 +159,17 @@
     var subjectOpt = subjectSelect.options[subjectSelect.selectedIndex];
     var subjectCode = subjectSelect.value;
     var title = titleInput.value.trim();
-    var file = fileInput.files[0];
+    var totalSize = selectedFiles.reduce(function (sum, f) {
+      return sum + f.size;
+    }, 0);
 
     if (!name) return showStatus("กรุณากรอกชื่อ-สกุล", "error");
     if (!className) return showStatus("กรุณาเลือกหรือกรอกห้องเรียน", "error");
     if (!subjectCode) return showStatus("กรุณาเลือกวิชา", "error");
     if (!title) return showStatus("กรุณาตั้งชื่องาน/หัวข้อที่ส่ง", "error");
-    if (!file) return showStatus("กรุณาเลือกไฟล์", "error");
-    if (file.size > CONFIG.MAX_FILE_MB * 1024 * 1024) {
-      return showStatus("ไฟล์ใหญ่เกิน " + CONFIG.MAX_FILE_MB + " MB", "error");
+    if (!selectedFiles.length) return showStatus("กรุณาเลือกไฟล์หรือโฟลเดอร์", "error");
+    if (totalSize > CONFIG.MAX_FILE_MB * 1024 * 1024) {
+      return showStatus("ไฟล์รวมกันใหญ่เกิน " + CONFIG.MAX_FILE_MB + " MB", "error");
     }
     if (!CONFIG.API_URL) {
       return showStatus("ระบบยังไม่ได้เชื่อมต่อฐานข้อมูล (API_URL ว่าง) ติดต่ออาจารย์", "error");
@@ -135,8 +179,19 @@
     submitBtn.disabled = true;
     showStatus("กำลังอัปโหลด...");
 
-    fileToBase64(file)
-      .then(function (base64) {
+    Promise.all(
+      selectedFiles.map(function (file) {
+        return fileToBase64(file).then(function (base64) {
+          return {
+            fileName: file.name,
+            relativePath: relativePathOf(file),
+            mimeType: file.type,
+            fileDataBase64: base64,
+          };
+        });
+      })
+    )
+      .then(function (files) {
         return apiPost({
           action: "submit",
           studentName: name,
@@ -144,17 +199,18 @@
           subjectCode: subjectCode,
           subjectName: subjectOpt ? subjectOpt.dataset.name : "",
           title: title,
-          fileName: file.name,
-          mimeType: file.type,
-          fileDataBase64: base64,
+          files: files,
         });
       })
       .then(function (res) {
         submitBtn.disabled = false;
         if (res && res.ok) {
-          showStatus("ส่งไฟล์งานสำเร็จ", "success");
+          showStatus("ส่งไฟล์งานสำเร็จ (" + selectedFiles.length + " ไฟล์)", "success");
           titleInput.value = "";
           fileInput.value = "";
+          folderInput.value = "";
+          selectedFiles = [];
+          updatePreview();
           loadHistory();
         } else {
           showStatus("ส่งไม่สำเร็จ: " + (res && res.error ? res.error : "unknown error"), "error");
@@ -207,7 +263,7 @@
               "<td>" + escapeHtml(s.subjectName) + "</td>" +
               "<td>" + escapeHtml(s.className) + "</td>" +
               "<td>" + escapeHtml(s.title) + "</td>" +
-              '<td><a href="' + s.fileUrl + '" target="_blank" rel="noopener">' + escapeHtml(s.fileName) + "</a></td>" +
+              '<td><a href="' + s.folderUrl + '" target="_blank" rel="noopener">' + escapeHtml(s.fileCount) + " ไฟล์</a></td>" +
               "<td>" + (graded ? '<span class="pill graded">' + escapeHtml(s.score) + "</span>" : '<span class="pill ungraded">ยังไม่ให้คะแนน</span>') + "</td>" +
               "<td>" + escapeHtml(s.comment || "") + "</td>" +
               "</tr>"

@@ -51,9 +51,14 @@
         <input type="text" id="f-title" placeholder="เช่น ใบงานสัปดาห์ที่ 3, โปรเจกต์จบเทอม" />
       </div>
       <div class="field">
-        <label for="f-file">เลือกไฟล์ (ขนาดไม่เกิน <span id="max-size-label"></span> MB)</label>
-        <input type="file" id="f-file" />
+        <label for="f-file">เลือกไฟล์ (เลือกได้หลายไฟล์ รวมกันไม่เกิน <span id="max-size-label"></span> MB)</label>
+        <input type="file" id="f-file" multiple />
       </div>
+      <div class="field">
+        <label for="f-folder">หรือเลือกทั้งโฟลเดอร์ (ส่งทีเดียวทั้งโปรเจกต์)</label>
+        <input type="file" id="f-folder" webkitdirectory />
+      </div>
+      <div id="file-preview" class="status-msg"></div>
       <button id="btn-submit" class="btn">ส่งไฟล์งาน</button>
       <div id="submit-status" class="status-msg"></div>
     </div>

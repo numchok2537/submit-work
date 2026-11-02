@@ -7,9 +7,10 @@ var HEADERS = [
   "subjectCode",
   "subjectName",
   "title",
-  "fileName",
-  "fileUrl",
-  "fileId",
+  "fileCount",
+  "fileNames",
+  "folderUrl",
+  "folderId",
   "score",
   "comment",
   "gradedAt",
@@ -54,7 +55,7 @@ function newId_() {
 
 function withLock_(fn) {
   var lock = LockService.getScriptLock();
-  lock.waitLock(15000);
+  lock.waitLock(25000);
   try {
     return fn();
   } finally {
@@ -83,18 +84,33 @@ function doPost(e) {
   return jsonOut_({ error: "unknown action" });
 }
 
+// data.files = [{ fileName, mimeType, fileDataBase64, relativePath }], relativePath
+// is the path *inside* the submission (e.g. "src/index.html") so folder
+// structure a student picked via "เลือกทั้งโฟลเดอร์" is preserved.
 function handleSubmit_(data) {
   var folder = getRootFolder_();
   var subjectFolder = getOrCreateChildFolder_(folder, data.subjectCode + " " + data.subjectName);
   var classFolder = getOrCreateChildFolder_(subjectFolder, data.className);
+  var submissionFolder = classFolder.createFolder(data.studentName + " - " + data.title);
 
-  var blob = Utilities.newBlob(
-    Utilities.base64Decode(data.fileDataBase64),
-    data.mimeType || "application/octet-stream",
-    data.fileName
-  );
-  var file = classFolder.createFile(blob);
-  file.setName(data.studentName + " - " + data.title + " - " + data.fileName);
+  var fileNames = [];
+  (data.files || []).forEach(function (f) {
+    var segments = String(f.relativePath || f.fileName).split("/").filter(function (s) {
+      return s.length > 0;
+    });
+    var fileName = segments.pop();
+    var targetFolder = submissionFolder;
+    segments.forEach(function (seg) {
+      targetFolder = getOrCreateChildFolder_(targetFolder, seg);
+    });
+    var blob = Utilities.newBlob(
+      Utilities.base64Decode(f.fileDataBase64),
+      f.mimeType || "application/octet-stream",
+      fileName
+    );
+    targetFolder.createFile(blob);
+    fileNames.push(f.relativePath || f.fileName);
+  });
 
   var sheet = getSheet_();
   var id = newId_();
@@ -106,15 +122,16 @@ function handleSubmit_(data) {
     data.subjectCode,
     data.subjectName,
     data.title,
-    data.fileName,
-    file.getUrl(),
-    file.getId(),
+    fileNames.length,
+    fileNames.join(", "),
+    submissionFolder.getUrl(),
+    submissionFolder.getId(),
     "",
     "",
     "",
   ]);
 
-  return jsonOut_({ ok: true, id: id, fileUrl: file.getUrl() });
+  return jsonOut_({ ok: true, id: id, folderUrl: submissionFolder.getUrl() });
 }
 
 function getOrCreateChildFolder_(parent, name) {
@@ -132,9 +149,9 @@ function handleSetScore_(data) {
   for (var i = 1; i < values.length; i++) {
     if (values[i][0] === data.id) {
       var row = i + 1;
-      sheet.getRange(row, 11).setValue(data.score); // score column
-      sheet.getRange(row, 12).setValue(data.comment || ""); // comment column
-      sheet.getRange(row, 13).setValue(new Date()); // gradedAt column
+      sheet.getRange(row, 12).setValue(data.score); // score column
+      sheet.getRange(row, 13).setValue(data.comment || ""); // comment column
+      sheet.getRange(row, 14).setValue(new Date()); // gradedAt column
       return jsonOut_({ ok: true });
     }
   }
@@ -153,12 +170,13 @@ function doGet(e) {
       subjectCode: r[4],
       subjectName: r[5],
       title: r[6],
-      fileName: r[7],
-      fileUrl: r[8],
-      fileId: r[9],
-      score: r[10],
-      comment: r[11],
-      gradedAt: r[12],
+      fileCount: r[7],
+      fileNames: r[8],
+      folderUrl: r[9],
+      folderId: r[10],
+      score: r[11],
+      comment: r[12],
+      gradedAt: r[13],
     };
   });
   return jsonOut_({ submissions: rows });

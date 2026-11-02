@@ -136,7 +136,7 @@
           "<td>" + escapeHtml(s.className) + "</td>" +
           "<td>" + escapeHtml(s.subjectName) + "</td>" +
           "<td>" + escapeHtml(s.title) + "</td>" +
-          '<td><a href="' + s.fileUrl + '" target="_blank" rel="noopener">' + escapeHtml(s.fileName) + "</a></td>" +
+          '<td><a href="' + s.folderUrl + '" target="_blank" rel="noopener" title="' + escapeHtml(s.fileNames || "") + '">' + escapeHtml(s.fileCount) + " ไฟล์</a></td>" +
           '<td><input type="text" class="score-input" value="' + escapeHtml(s.score || "") + '" /></td>' +
           '<td><input type="text" class="comment-input" value="' + escapeHtml(s.comment || "") + '" /></td>' +
           '<td><button class="btn small btn-save">บันทึก</button></td>' +
